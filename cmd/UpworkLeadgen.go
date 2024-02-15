@@ -1,11 +1,10 @@
 package main
 
 import (
-	"UpworkLeadgen/internal/api/telegram"
 	"fmt"
 
 	_ "UpworkLeadgen/internal/api"
-	_ "UpworkLeadgen/internal/api/telegram"
+	"UpworkLeadgen/internal/api/telegram"
 
 	"github.com/spf13/viper"
 )
@@ -22,5 +21,6 @@ func init() {
 }
 
 func main() {
-	telegram.StartBot()
+	bot := telegram.NewBot()
+	bot.StartBot()
 }
