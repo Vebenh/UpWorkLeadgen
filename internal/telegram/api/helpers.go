@@ -1,4 +1,4 @@
-package telegram
+package api
 
 import (
 	"log"
@@ -20,10 +20,8 @@ func createTickerFromText(text string) *time.Ticker {
 		log.Fatalf("Ошибка при преобразовании текста в число: %v", err)
 	}
 
-	// Преобразование минут в Duration
 	duration := time.Duration(minutes) * time.Minute
 
-	// Создание и возврат нового Ticker
 	ticker := time.NewTicker(duration)
 	return ticker
 }

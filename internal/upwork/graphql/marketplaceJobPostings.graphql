@@ -1,0 +1,25 @@
+# noinspection GraphQLUnresolvedReference
+query marketplaceJobPostings(
+    $marketPlaceJobFilter: MarketplaceJobFilter,
+    $searchType: MarketplaceJobPostingSearchType,
+    $sortAttributes: [MarketplaceJobPostingSearchSortAttribute]
+){
+    marketplaceJobPostings(
+        marketPlaceJobFilter: $marketPlaceJobFilter,
+        searchType: $searchType,
+        sortAttributes: $sortAttributes) {
+        totalCount
+        edges {
+            node {
+                id
+                title
+                description
+            }
+        }
+        pageInfo {
+            endCursor
+            hasNextPage
+        }
+    }
+}
+

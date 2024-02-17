@@ -1,4 +1,4 @@
-package telegram
+package api
 
 import (
 	"fmt"
@@ -34,7 +34,7 @@ func NewBot() *Bot {
 func (b *Bot) registerHandlers() {
 	b.Connection.Handle(StartCommand, b.StartHendler)
 	b.Connection.Handle(SearchCommand, b.SearchHendler)
-	b.Connection.Handle(UpdateCommand, b.UpdateHendler)
+	b.Connection.Handle(UpdateTimeCommand, b.UpdateTimeHendler)
 	b.Connection.Handle(HelpCommand, b.HelpHendler)
 	b.Connection.Handle(telebot.OnText, b.TextHendler)
 }

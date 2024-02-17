@@ -1,4 +1,4 @@
-package telegram
+package api
 
 import (
 	"gopkg.in/tucnak/telebot.v2"
@@ -7,15 +7,15 @@ import (
 )
 
 const (
-	StartCommand  = "/start"
-	SearchCommand = "/search"
-	UpdateCommand = "/update"
-	HelpCommand   = "/help"
+	StartCommand      = "/start"
+	SearchCommand     = "/search"
+	UpdateTimeCommand = "/update"
+	HelpCommand       = "/help"
 )
 
 const (
-	SearchState = "search_state"
-	UpdateState = "update_state"
+	SearchState     = "search_state"
+	UpdateTimeState = "update_state"
 )
 
 type UserState struct {
@@ -58,8 +58,8 @@ func (b *Bot) SearchHendler(m *telebot.Message) {
 	}
 }
 
-func (b *Bot) UpdateHendler(m *telebot.Message) {
-	userStates[m.Sender.ID].CurrentCommand = UpdateState
+func (b *Bot) UpdateTimeHendler(m *telebot.Message) {
+	userStates[m.Sender.ID].CurrentCommand = UpdateTimeState
 	_, err := b.Connection.Send(m.Sender, "Введите временной промежуток для обновлений в минутах:")
 	if err != nil {
 		log.Println("Ошибка при отправке сообщения:", err)
@@ -77,7 +77,7 @@ func (b *Bot) TextHendler(m *telebot.Message) {
 		userStates[m.Sender.ID].CurrentFilter = m.Text
 		b.Connection.Send(m.Sender, "Поиск сохранен")
 		b.Connection.Send(m.Sender, m.Text)
-	case UpdateState:
+	case UpdateTimeState:
 		userStates[m.Sender.ID].UpdateTime = createTickerFromText(m.Text)
 		b.Connection.Send(m.Sender, "Временной интервал установлен")
 	default:

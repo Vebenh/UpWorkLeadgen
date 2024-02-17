@@ -1,7 +1,9 @@
 run:
 	mkdir -p ./bin/config
+	mkdir -p ./bin/graphql
 	go build -o ./bin/UpworkLeadgen ./cmd/UpworkLeadgen.go
-	cp ./config/*.yaml ./bin/config
+	cp ./config/* ./bin/config
+	cp ./internal/upwork/graphql/* ./bin/graphql
 	cd ./bin && ./UpworkLeadgen
 
 build:
