@@ -94,6 +94,12 @@ func (db *Db) GetCustomerByTelegramID(telegramID int64) (*Customer, error) {
 	return &customer, nil
 }
 
+func (db *Db) FetchAllCustomers() ([]*Customer, error) {
+	customers := []*Customer{}
+
+	return customers, nil
+}
+
 func (db *Db) GetUpdateTime(tgID int64) (time.Duration, error) {
 	var customer Customer
 	if err := db.Connection.Where("telegram_id = ?", tgID).First(&customer).Error; err != nil {

@@ -2,6 +2,7 @@ package main
 
 import (
 	tg "UpworkLeadgen/internal/telegram/api"
+	"UpworkLeadgen/internal/telegram/service"
 	"fmt"
 	"sync"
 
@@ -21,18 +22,18 @@ func init() {
 
 func main() {
 	wg := sync.WaitGroup{}
+	entry := make(chan *tg.Bot)
 
 	wg.Add(2)
 	go func() {
 		bot := tg.NewBot()
+		entry <- bot
 		bot.StartBot()
 		wg.Done()
 	}()
 	go func() {
-		fmt.Println("awserdtgfhj")
+		service.StartScheduler(<-entry)
 		wg.Done()
 	}()
 	wg.Wait()
-
-	//uw.NewConnect()
 }
