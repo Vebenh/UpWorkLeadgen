@@ -3,6 +3,7 @@ package main
 import (
 	tg "UpworkLeadgen/internal/telegram/api"
 	"fmt"
+	"sync"
 
 	"github.com/spf13/viper"
 )
@@ -19,7 +20,19 @@ func init() {
 }
 
 func main() {
-	bot := tg.NewBot()
-	bot.StartBot()
+	wg := sync.WaitGroup{}
+
+	wg.Add(2)
+	go func() {
+		bot := tg.NewBot()
+		bot.StartBot()
+		wg.Done()
+	}()
+	go func() {
+		fmt.Println("awserdtgfhj")
+		wg.Done()
+	}()
+	wg.Wait()
+
 	//uw.NewConnect()
 }

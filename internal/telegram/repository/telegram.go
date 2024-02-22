@@ -1,16 +1,19 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"sync"
 	"time"
 )
 
 type Db struct {
 	Connection *gorm.DB
+	Mutex      *sync.RWMutex
 }
 
 type Customer struct {
@@ -26,14 +29,16 @@ type SearchQuery struct {
 	Query      string `gorm:"not null"`
 }
 
-func InitDB() (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s port=%d user=%s "+
+func InitDB() (*Db, error) {
+	Db := &Db{}
+
+	dsn := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		viper.GetString("db.host"),
-		viper.GetString("db.port"),
-		viper.GetString("db.user"),
-		viper.GetString("db.password"),
-		viper.GetString("db.dbname"))
+		viper.Get("db.host"),
+		viper.Get("db.port"),
+		viper.Get("db.user"),
+		viper.Get("db.password"),
+		viper.Get("db.dbname"))
 
 	//db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -46,20 +51,38 @@ func InitDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	return db, nil
+	Db.Connection = db
+	Db.Mutex = &sync.RWMutex{}
+
+	return Db, nil
 }
 
-func (db *Db) CreateCustomer(telegramID int64, searchInterval time.Duration) (*Customer, error) {
+func (db *Db) CreateCustomer(telegramID int64, searchInterval time.Duration) error {
 	customer := &Customer{
 		TelegramID:     telegramID,
 		SearchInterval: searchInterval,
 	}
 
 	if err := db.Connection.Create(customer).Error; err != nil {
-		return nil, err
+		return err
 	}
 
-	return customer, nil
+	return nil
+}
+
+func (db *Db) EnsureCustomerExists(telegramID int64) error {
+	var customer Customer
+	if err := db.Connection.Where("telegram_id = ?", telegramID).First(&customer).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			if err := db.CreateCustomer(telegramID, 0); err != nil {
+				return fmt.Errorf("error creating customer: %w", err)
+			}
+			return nil
+		}
+		return fmt.Errorf("error getting customer by telegramID: %w", err)
+	}
+
+	return nil
 }
 
 func (db *Db) GetCustomerByTelegramID(telegramID int64) (*Customer, error) {

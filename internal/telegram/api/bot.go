@@ -18,7 +18,7 @@ type Bot struct {
 func NewBot() *Bot {
 	bot := &Bot{}
 
-	connection, err := telebot.NewBot(telebot.Settings{
+	tgConnection, err := telebot.NewBot(telebot.Settings{
 		Token:  viper.GetString("telegram.apiKey"),
 		Poller: &telebot.LongPoller{Timeout: 10 * time.Second},
 	})
@@ -27,11 +27,14 @@ func NewBot() *Bot {
 		log.Fatal("Error connecting to telegram bot:", err)
 	}
 
-	bot.TgConnection = connection
-	bot.Db.Connection, err = repository.InitDB()
+	Db, err := repository.InitDB()
+
 	if err != nil {
 		log.Fatal("Error connecting to database:", err)
 	}
+
+	bot.TgConnection = tgConnection
+	bot.Db = Db
 
 	bot.registerHandlers()
 
@@ -39,11 +42,12 @@ func NewBot() *Bot {
 }
 
 func (b *Bot) registerHandlers() {
-	b.TgConnection.Handle(StartCommand, b.StartHendler)
-	b.TgConnection.Handle(SearchCommand, b.SearchHendler)
+	b.TgConnection.Handle(StartCommand, b.StartHandler)
+	b.TgConnection.Handle(SearchCommand, b.SearchHandler)
 	b.TgConnection.Handle(UpdateTimeCommand, b.UpdateTimeHandler)
-	b.TgConnection.Handle(HelpCommand, b.HelpHendler)
-	b.TgConnection.Handle(telebot.OnText, b.TextHendler)
+	b.TgConnection.Handle(HelpCommand, b.HelpHandler)
+	b.TgConnection.Handle(telebot.OnText, b.TextHandler)
+	b.TgConnection.Handle(telebot.OnCallback, b.CallbackHandler)
 }
 
 func (b *Bot) StartBot() {

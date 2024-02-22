@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/go-chi/chi/v5 v5.0.12
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/viper v1.18.2
 	github.com/upwork/golang-upwork-oauth2 v2.1.5+incompatible
 	gopkg.in/tucnak/telebot.v2 v2.5.0
