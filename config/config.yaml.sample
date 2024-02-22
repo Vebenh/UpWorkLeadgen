@@ -1,4 +1,12 @@
 telegram:
   apikey: ""
 upwork:
-  apiKey: ""git
+  apikey: ""
+  secret: ""
+  redirectURI: ""
+db:
+  host: ""
+  port: ""
+  user: ""
+  password: ""
+  dbname: ""

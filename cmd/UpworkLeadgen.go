@@ -1,7 +1,7 @@
 package main
 
 import (
-	uw "UpworkLeadgen/internal/upwork/api"
+	tg "UpworkLeadgen/internal/telegram/api"
 	"fmt"
 
 	"github.com/spf13/viper"
@@ -19,7 +19,7 @@ func init() {
 }
 
 func main() {
-	//bot := tg.NewBot()
-	//bot.StartBot()
-	uw.NewConnect()
+	bot := tg.NewBot()
+	bot.StartBot()
+	//uw.NewConnect()
 }

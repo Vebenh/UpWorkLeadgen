@@ -3,7 +3,6 @@ package api
 import (
 	"gopkg.in/tucnak/telebot.v2"
 	"log"
-	"time"
 )
 
 const (
@@ -20,67 +19,68 @@ const (
 
 type UserState struct {
 	CurrentCommand string
-	CurrentFilter  string
-	UpdateTime     *time.Ticker
 }
 
 var userStates = make(map[int64]*UserState)
 
-func (b *Bot) StartHendler(m *telebot.Message) {
+func (b *Bot) StartHandler(m *telebot.Message) {
 
-	if _, exists := userStates[m.Sender.ID]; !exists {
-		userStates[m.Sender.ID] = &UserState{}
+	if err := b.EnsureUserExists(m.Sender.ID); err != nil {
+		log.Fatal("Error verifying the user's existence:", err)
 	}
 
-	btn1 := telebot.ReplyButton{Text: "Кнопка 1"}
-	btn2 := telebot.ReplyButton{Text: "Кнопка 2"}
-	btn3 := telebot.ReplyButton{Text: "Кнопка 3"}
-	btn4 := telebot.ReplyButton{Text: "Кнопка 4"}
-
-	markup := &telebot.ReplyMarkup{}
-	markup.ReplyKeyboard = [][]telebot.ReplyButton{
-		{btn1, btn2, btn3, btn4},
-	}
-	markup.ResizeReplyKeyboard = true
-	markup.OneTimeKeyboard = false // Скрыть клавиатуру после использования
-
-	_, err := b.Connection.Send(m.Sender, "Привет! Выберите действие:", markup)
+	_, err := b.TgConnection.Send(m.Sender, "Привет! Выберите действие:")
 	if err != nil {
 		log.Println("Ошибка при отправке сообщения:", err)
 	}
 }
 
-func (b *Bot) SearchHendler(m *telebot.Message) {
+func (b *Bot) SearchHandler(m *telebot.Message) {
 	userStates[m.Sender.ID].CurrentCommand = SearchState
-	_, err := b.Connection.Send(m.Sender, "Пожалуйста, введите текст:")
+	_, err := b.TgConnection.Send(m.Sender, "Пожалуйста, введите текст:")
 	if err != nil {
 		log.Println("Ошибка при отправке сообщения:", err)
 	}
 }
 
-func (b *Bot) UpdateTimeHendler(m *telebot.Message) {
+func (b *Bot) UpdateTimeHandler(m *telebot.Message) {
 	userStates[m.Sender.ID].CurrentCommand = UpdateTimeState
-	_, err := b.Connection.Send(m.Sender, "Введите временной промежуток для обновлений в минутах:")
+	_, err := b.TgConnection.Send(m.Sender, "Введите временной промежуток для обновлений в минутах:")
 	if err != nil {
 		log.Println("Ошибка при отправке сообщения:", err)
 	}
 }
 
-func (b *Bot) HelpHendler(m *telebot.Message) {
-	b.Connection.Send(m.Sender, "HelpHendler")
+func (b *Bot) HelpHandler(m *telebot.Message) {
+	b.TgConnection.Send(m.Sender, "HelpHendler")
 }
 
 func (b *Bot) TextHendler(m *telebot.Message) {
 	state := getUserState(m.Sender.ID)
 	switch state.CurrentCommand {
 	case SearchState:
-		userStates[m.Sender.ID].CurrentFilter = m.Text
-		b.Connection.Send(m.Sender, "Поиск сохранен")
-		b.Connection.Send(m.Sender, m.Text)
+		b.TgConnection.Send(m.Sender, "Поиск сохранен")
 	case UpdateTimeState:
-		userStates[m.Sender.ID].UpdateTime = createTickerFromText(m.Text)
-		b.Connection.Send(m.Sender, "Временной интервал установлен")
+		b.TgConnection.Send(m.Sender, "Временной интервал установлен")
 	default:
-		b.Connection.Send(m.Sender, "Неизвестная команда")
+		b.TgConnection.Send(m.Sender, "Неизвестная команда")
 	}
+}
+
+func (b *Bot) EnsureUserExists(telegramID int64) error {
+
+	customer, err := b.Db.GetCustomerByTelegramID(telegramID)
+	if err != nil {
+		return err
+	}
+
+	if customer == nil {
+		_, err := b.Db.CreateCustomer(telegramID, 0)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	return nil
 }

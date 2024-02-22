@@ -1,7 +1,7 @@
 package api
 
 import (
-	"log"
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -14,14 +14,12 @@ func getUserState(userID int64) *UserState {
 	return userStates[userID]
 }
 
-func createTickerFromText(text string) *time.Ticker {
+func createDurationFromText(text string) (time.Duration, error) {
 	minutes, err := strconv.Atoi(text)
 	if err != nil {
-		log.Fatalf("Ошибка при преобразовании текста в число: %v", err)
+		return 0, fmt.Errorf("ошибка при преобразовании текста в число: %w", err)
 	}
 
 	duration := time.Duration(minutes) * time.Minute
-
-	ticker := time.NewTicker(duration)
-	return ticker
+	return duration, nil
 }

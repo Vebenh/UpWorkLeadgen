@@ -6,11 +6,13 @@ import (
 	"log"
 	"time"
 
+	"UpworkLeadgen/internal/telegram/repository"
 	"gopkg.in/tucnak/telebot.v2"
 )
 
 type Bot struct {
-	Connection *telebot.Bot
+	TgConnection *telebot.Bot
+	Db           *repository.Db
 }
 
 func NewBot() *Bot {
@@ -22,24 +24,29 @@ func NewBot() *Bot {
 	})
 
 	if err != nil {
-		log.Fatal("Error connecting to telegram bot", err)
+		log.Fatal("Error connecting to telegram bot:", err)
 	}
 
-	bot.Connection = connection
+	bot.TgConnection = connection
+	bot.Db.Connection, err = repository.InitDB()
+	if err != nil {
+		log.Fatal("Error connecting to database:", err)
+	}
+
 	bot.registerHandlers()
 
 	return bot
 }
 
 func (b *Bot) registerHandlers() {
-	b.Connection.Handle(StartCommand, b.StartHendler)
-	b.Connection.Handle(SearchCommand, b.SearchHendler)
-	b.Connection.Handle(UpdateTimeCommand, b.UpdateTimeHendler)
-	b.Connection.Handle(HelpCommand, b.HelpHendler)
-	b.Connection.Handle(telebot.OnText, b.TextHendler)
+	b.TgConnection.Handle(StartCommand, b.StartHendler)
+	b.TgConnection.Handle(SearchCommand, b.SearchHendler)
+	b.TgConnection.Handle(UpdateTimeCommand, b.UpdateTimeHandler)
+	b.TgConnection.Handle(HelpCommand, b.HelpHendler)
+	b.TgConnection.Handle(telebot.OnText, b.TextHendler)
 }
 
 func (b *Bot) StartBot() {
 	fmt.Println("The bot is running...")
-	b.Connection.Start()
+	b.TgConnection.Start()
 }
