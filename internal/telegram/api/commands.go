@@ -97,7 +97,11 @@ func (b *Bot) TextHandler(m *telebot.Message) {
 	state := getUserState(m.Sender.ID)
 	switch state.CurrentCommand {
 	case SearchState:
-		b.Db.AddSearchQuery(m.Sender.ID, m.Text)
+		err := b.Db.AddSearchQuery(m.Sender.ID, m.Text)
+		if err != nil {
+			log.Println("Ошибка при добавлении поискового запроса:", err)
+			return
+		}
 		b.TgConnection.Send(m.Sender, "Поисковый запрос сохранен")
 	case UpdateTimeState:
 		duration, err := createDurationFromText(m.Text)
