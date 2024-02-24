@@ -11,12 +11,18 @@ import (
 )
 
 type Bot struct {
-	TgConnection *telebot.Bot
-	Db           *repository.Db
+	TgConnection      *telebot.Bot
+	Db                *repository.Db
+	UpdateTimeChannel chan *UpdateTimeMessage
+}
+
+type UpdateTimeMessage struct {
+	TelegramID     int64
+	SearchInterval time.Duration
 }
 
 func NewBot() *Bot {
-	bot := &Bot{}
+	bot := &Bot{UpdateTimeChannel: make(chan *UpdateTimeMessage)}
 
 	tgConnection, err := telebot.NewBot(telebot.Settings{
 		Token:  viper.GetString("telegram.apiKey"),
@@ -37,6 +43,16 @@ func NewBot() *Bot {
 	bot.Db = Db
 
 	bot.registerHandlers()
+
+	commands := []telebot.Command{
+		{Text: "/start", Description: "Запустить бота"},
+		{Text: "/help", Description: "Показать помощь"},
+	}
+
+	err = bot.TgConnection.SetCommands(commands)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return bot
 }

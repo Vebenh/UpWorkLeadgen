@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/spf13/viper"
+	"github.com/upwork/golang-upwork-oauth2/api"
 	"io"
+	"log"
 	"net/http"
 	"os"
-
-	"github.com/upwork/golang-upwork-oauth2/api"
 )
 
 const cfgFile = "./config/upwork.json"
@@ -88,5 +89,10 @@ func GraphQLQuery(token string) {
 		return
 	}
 
-	fmt.Printf("Ответ от Upwork API:\n%s\n", responseBody)
+	var result map[string]interface{}
+	if err := json.Unmarshal(responseBody, &result); err != nil {
+		log.Fatalf("Ошибка при десериализации: %v", err)
+	}
+
+	fmt.Printf("Ответ от Upwork API:\n%s\n", result)
 }

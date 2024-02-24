@@ -3,9 +3,8 @@ package main
 import (
 	tg "UpworkLeadgen/internal/telegram/api"
 	"UpworkLeadgen/internal/telegram/service"
+	uw "UpworkLeadgen/internal/upwork/api"
 	"fmt"
-	"sync"
-
 	"github.com/spf13/viper"
 )
 
@@ -21,19 +20,28 @@ func init() {
 }
 
 func main() {
-	wg := sync.WaitGroup{}
-	entry := make(chan *tg.Bot)
+	botChan := make(chan *tg.Bot)
+	defer close(botChan)
 
-	wg.Add(2)
 	go func() {
-		bot := tg.NewBot()
-		entry <- bot
-		bot.StartBot()
-		wg.Done()
+		bot := <-botChan
+		scheduler := service.NewScheduler(bot)
+		scheduler.StartScheduler()
+		fmt.Println("Горутина шедулера")
+		for {
+			fmt.Println("1")
+			updateTimeMessage := <-bot.UpdateTimeChannel
+			fmt.Println("updateTimeMessage дошел")
+			scheduler.UpdateCustomer(updateTimeMessage)
+			fmt.Println("2")
+		}
 	}()
 	go func() {
-		service.StartScheduler(<-entry)
-		wg.Done()
+		// TODO Реализовать http хендлер для OAuth 2.0
+		uw.NewConnect()
 	}()
-	wg.Wait()
+
+	bot := tg.NewBot()
+	botChan <- bot
+	bot.StartBot()
 }

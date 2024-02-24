@@ -7,6 +7,7 @@ import (
 	"gorm.io/driver/postgres"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log"
 	"sync"
 	"time"
 )
@@ -94,8 +95,13 @@ func (db *Db) GetCustomerByTelegramID(telegramID int64) (*Customer, error) {
 	return &customer, nil
 }
 
-func (db *Db) FetchAllCustomers() ([]*Customer, error) {
-	customers := []*Customer{}
+func (db *Db) FetchAllCustomers() ([]Customer, error) {
+	var customers []Customer
+	result := db.Connection.Preload("SearchQueries").Find(&customers)
+	if result.Error != nil {
+		log.Printf("Ошибка при извлечении пользователей из базы данных: %v\n", result.Error)
+		return nil, result.Error
+	}
 
 	return customers, nil
 }
@@ -109,7 +115,8 @@ func (db *Db) GetUpdateTime(tgID int64) (time.Duration, error) {
 }
 
 func (db *Db) SetUpdateTime(tgID int64, interval time.Duration) error {
-	return db.Connection.Model(&Customer{}).Where("telegram_id = ?", tgID).Update("search_interval", interval).Error
+	seconds := int(interval)
+	return db.Connection.Model(&Customer{}).Where("telegram_id = ?", tgID).Update("search_interval", seconds).Error
 }
 
 func (db *Db) GetSearchQueries(tgID int64) ([]SearchQuery, error) {

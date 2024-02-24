@@ -114,8 +114,20 @@ func (b *Bot) TextHandler(m *telebot.Message) {
 			log.Println("Ошибка обновления времени", err)
 			return
 		}
+		b.UpdateTimeChannel <- &UpdateTimeMessage{TelegramID: m.Sender.ID, SearchInterval: duration}
 		b.TgConnection.Send(m.Sender, "Временной интервал установлен")
 	default:
 		b.TgConnection.Send(m.Sender, "Неизвестная команда")
+	}
+}
+
+func (b *Bot) SendMessage(telegramID int64, message string) {
+	recipient := &telebot.User{ID: telegramID}
+
+	_, err := b.TgConnection.Send(recipient, message, &telebot.SendOptions{
+		ParseMode: telebot.ModeMarkdown, // Используйте ModeHTML или ModeMarkdown для форматирования
+	})
+	if err != nil {
+		log.Printf("Ошибка при отправке сообщения: %v\n", err)
 	}
 }
